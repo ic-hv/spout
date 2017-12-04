@@ -52,7 +52,7 @@ abstract class AbstractWorkbook implements WorkbookInterface
      * @return WorksheetInterface The created sheet
      * @throws \Box\Spout\Common\Exception\IOException If unable to open the sheet for writing
      */
-    abstract public function addNewSheet();
+    abstract public function addNewSheet($freezeFirstRow = false);
 
     /**
      * Creates a new sheet in the workbook and make it the current sheet.
@@ -63,7 +63,7 @@ abstract class AbstractWorkbook implements WorkbookInterface
      */
     public function addNewSheetAndMakeItCurrent()
     {
-        $worksheet = $this->addNewSheet();
+        $worksheet = $this->addNewSheet(true);
         $this->setCurrentWorksheet($worksheet);
 
         return $worksheet;

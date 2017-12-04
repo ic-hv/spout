@@ -57,6 +57,8 @@ EOD;
     /** @var int Index of the last written row */
     protected $lastWrittenRowIndex = 0;
 
+    public $lockHeadRow = false;
+
     /**
      * @param \Box\Spout\Writer\Common\Sheet $externalSheet The associated "external" sheet
      * @param string $worksheetFilesFolder Temporary folder where the files to create the XLSX will be stored
@@ -65,7 +67,7 @@ EOD;
      * @param bool $shouldUseInlineStrings Whether inline or shared strings should be used
      * @throws \Box\Spout\Common\Exception\IOException If the sheet data file cannot be opened for writing
      */
-    public function __construct($externalSheet, $worksheetFilesFolder, $sharedStringsHelper, $styleHelper, $shouldUseInlineStrings)
+    public function __construct($externalSheet, $worksheetFilesFolder, $sharedStringsHelper, $styleHelper, $shouldUseInlineStrings, $freezeFirstRow)
     {
         $this->externalSheet = $externalSheet;
         $this->sharedStringsHelper = $sharedStringsHelper;
@@ -77,7 +79,7 @@ EOD;
         $this->stringHelper = new StringHelper();
 
         $this->worksheetFilePath = $worksheetFilesFolder . '/' . strtolower($this->externalSheet->getName()) . '.xml';
-        $this->startSheet();
+        $this->startSheet($freezeFirstRow);
     }
 
     /**
@@ -86,12 +88,23 @@ EOD;
      * @return void
      * @throws \Box\Spout\Common\Exception\IOException If the sheet data file cannot be opened for writing
      */
-    protected function startSheet()
+    protected function startSheet($freezeFirstRow = false)
     {
         $this->sheetFilePointer = fopen($this->worksheetFilePath, 'w');
         $this->throwIfSheetFilePointerIsNotAvailable();
 
         fwrite($this->sheetFilePointer, self::SHEET_XML_FILE_HEADER);
+
+        if($freezeFirstRow) {
+            fwrite($this->sheetFilePointer,
+                '<sheetViews>
+                    <sheetView tabSelected="1" workbookViewId="0">
+                        <pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>
+                        <selection pane="bottomLeft" sqref="A1:XFD1"/>
+                    </sheetView>
+                </sheetViews>');
+        }
+
         fwrite($this->sheetFilePointer, '<sheetData>');
     }
 

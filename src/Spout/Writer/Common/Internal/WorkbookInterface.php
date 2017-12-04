@@ -15,7 +15,7 @@ interface WorkbookInterface
      * @return WorksheetInterface The created sheet
      * @throws \Box\Spout\Common\Exception\IOException If unable to open the sheet for writing
      */
-    public function addNewSheet();
+    public function addNewSheet($freezeFirstRow = false);
 
     /**
      * Creates a new sheet in the workbook and make it the current sheet.
