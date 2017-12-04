@@ -83,6 +83,10 @@ class Writer extends AbstractWriter
         }
     }
 
+    public function registerStyle($style) {
+        return false;
+    }
+
     /**
      * Adds data to the currently opened writer.
      *

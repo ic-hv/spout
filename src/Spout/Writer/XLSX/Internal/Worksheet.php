@@ -184,8 +184,39 @@ EOD;
 
         $rowXML = '<row r="' . $rowIndex . '" spans="1:' . $numCells . '">';
 
-        foreach($dataRow as $cellValue) {
-            $rowXML .= $this->getCellXML($rowIndex, $cellNumber, $cellValue, $style->getId());
+        foreach($dataRow as $cell) {
+
+            if (!is_array($cell)) {
+                $rowXML .= $this->getCellXML($rowIndex, $cellNumber, $cell, $style->getId());
+            } else {
+                $cellValue = $cell[0];
+                $cellStyle = $cell[1];
+
+                $columnIndex = CellHelper::getCellIndexFromColumnIndex($cellNumber);
+                $cellXML = '<c r="' . $columnIndex . $rowIndex . '"';
+                $cellXML .= ' s="' . $cellStyle->getId() . '"';
+
+                if(CellHelper::isNonEmptyString($cellValue)) {
+                    if($this->shouldUseInlineStrings) {
+                        $cellXML .= ' t="inlineStr"><is><t>' . $this->stringsEscaper->escape($cellValue) . '</t></is></c>';
+                    } else {
+                        $sharedStringId = $this->sharedStringsHelper->writeString($cellValue);
+                        $cellXML .= ' t="s"><v>' . $sharedStringId . '</v></c>';
+                    }
+                } else if(CellHelper::isBoolean($cellValue)) {
+                    $cellXML .= ' t="b"><v>' . intval($cellValue) . '</v></c>';
+                } else if(CellHelper::isNumeric($cellValue)) {
+                    $cellXML .= '><v>' . $cellValue . '</v></c>';
+                } else if(empty($cellValue)) {
+                    // don't write empty cells (not appending to $cellXML is the right behavior!)
+                    $cellXML = '';
+                } else {
+                    throw new InvalidArgumentException('Trying to add a value with an unsupported type: ' . gettype($cellValue));
+                }
+
+                $rowXML .= $cellXML;
+            }
+
             $cellNumber++;
         }
 
