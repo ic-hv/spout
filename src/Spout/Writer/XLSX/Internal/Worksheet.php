@@ -252,31 +252,9 @@ EOD;
                 $rowXML .= $this->getCellXML($rowIndex, $cellNumber, $cell, $style->getId());
             } else {
                 $cellValue = $cell[0];
+                /** @var \Box\Spout\Writer\Style\Style $cellStyle */
                 $cellStyle = $cell[1];
-
-                $columnIndex = CellHelper::getCellIndexFromColumnIndex($cellNumber);
-                $cellXML = '<c r="' . $columnIndex . $rowIndex . '"';
-                $cellXML .= ' s="' . $cellStyle->getId() . '"';
-
-                if(CellHelper::isNonEmptyString($cellValue)) {
-                    if($this->shouldUseInlineStrings) {
-                        $cellXML .= ' t="inlineStr"><is><t>' . $this->stringsEscaper->escape($cellValue) . '</t></is></c>';
-                    } else {
-                        $sharedStringId = $this->sharedStringsHelper->writeString($cellValue);
-                        $cellXML .= ' t="s"><v>' . $sharedStringId . '</v></c>';
-                    }
-                } else if(CellHelper::isBoolean($cellValue)) {
-                    $cellXML .= ' t="b"><v>' . intval($cellValue) . '</v></c>';
-                } else if(CellHelper::isNumeric($cellValue)) {
-                    $cellXML .= '><v>' . $cellValue . '</v></c>';
-                } else if(empty($cellValue)) {
-                    // don't write empty cells (not appending to $cellXML is the right behavior!)
-                    $cellXML = '';
-                } else {
-                    throw new InvalidArgumentException('Trying to add a value with an unsupported type: ' . gettype($cellValue));
-                }
-
-                $rowXML .= $cellXML;
+                $rowXML .= $this->getCellXML($rowIndex, $cellNumber, $cellValue, $cellStyle->getId());
             }
 
             $cellNumber++;
@@ -306,7 +284,9 @@ EOD;
         $cellXML = '<c r="' . $columnIndex . $rowIndex . '"';
         $cellXML .= ' s="' . $styleId . '"';
 
-        if (CellHelper::isNonEmptyString($cellValue)) {
+        if (CellHelper::isFormulaString($cellValue)) {
+            $cellXML .= '><f>' . substr($cellValue, 1) . '</f><v></v></c>'; // seriously, that's it.
+        } else if (CellHelper::isNonEmptyString($cellValue)) {
             $cellXML .= $this->getCellXMLFragmentForNonEmptyString($cellValue);
         } else if (CellHelper::isBoolean($cellValue)) {
             $cellXML .= ' t="b"><v>' . intval($cellValue) . '</v></c>';

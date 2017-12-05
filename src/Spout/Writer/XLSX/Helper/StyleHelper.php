@@ -328,13 +328,7 @@ EOD;
         $content = '<cellXfs count="' . count($registeredStyles) . '">';
 
         foreach ($registeredStyles as $style) {
-/*
-            $styleId = $style->getId();
-            $fillId = $this->styleIdToFillMappingTable[$styleId];
-            $borderId = $this->styleIdToBorderMappingTable[$styleId];
 
-            $content .= '<xf numFmtId="0" fontId="' . $styleId . '" fillId="' . $fillId . '" borderId="' . $borderId . '" xfId="0"';
-*/
             $content .= '<xf numFmtId="'.$style->getNumberFormatId().'" fontId="' . $style->getId() . '" fillId="0" borderId="0" xfId="0"';
 
             if ($style->shouldApplyNumberFormat()) {
