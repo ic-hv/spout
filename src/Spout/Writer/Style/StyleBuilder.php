@@ -170,6 +170,6 @@ class StyleBuilder
      */
     public function build()
     {
-        return $this->style;
+        return clone $this->style;
     }
 }
