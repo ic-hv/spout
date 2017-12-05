@@ -59,6 +59,10 @@ EOD;
 
     public $lockHeadRow = false;
 
+    protected $freezeXPos;
+    protected $freezeYPos;
+
+
     /**
      * @param \Box\Spout\Writer\Common\Sheet $externalSheet The associated "external" sheet
      * @param string $worksheetFilesFolder Temporary folder where the files to create the XLSX will be stored
@@ -67,19 +71,43 @@ EOD;
      * @param bool $shouldUseInlineStrings Whether inline or shared strings should be used
      * @throws \Box\Spout\Common\Exception\IOException If the sheet data file cannot be opened for writing
      */
-    public function __construct($externalSheet, $worksheetFilesFolder, $sharedStringsHelper, $styleHelper, $shouldUseInlineStrings, $freezeFirstRow)
+    public function __construct($externalSheet, $worksheetFilesFolder, $sharedStringsHelper, $styleHelper, $shouldUseInlineStrings, $freezeXPos, $freezeYPos)
     {
         $this->externalSheet = $externalSheet;
         $this->sharedStringsHelper = $sharedStringsHelper;
         $this->styleHelper = $styleHelper;
         $this->shouldUseInlineStrings = $shouldUseInlineStrings;
 
+        $this->freezeXPos = $freezeXPos;
+        $this->freezeYPos = $freezeYPos;
+
         /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
         $this->stringsEscaper = \Box\Spout\Common\Escaper\XLSX::getInstance();
         $this->stringHelper = new StringHelper();
 
         $this->worksheetFilePath = $worksheetFilesFolder . '/' . strtolower($this->externalSheet->getName()) . '.xml';
-        $this->startSheet($freezeFirstRow);
+        $this->startSheet();
+    }
+
+    /**
+     * Gets the alphabetic column index for a given numerical index
+     *
+     * @param $numericIndex
+     * @return string
+     */
+    private function alphabeticColumnIndex($numericIndex) {
+
+        $columnName = '';
+        $dividend = $numericIndex;
+
+        while($dividend > 0) {
+
+            $modulo = ($dividend - 1) % 26;
+            $columnName = chr(65 + $modulo) . $columnName;
+            $dividend = floor(($dividend - $modulo) / 26);
+        }
+
+        return $columnName;
     }
 
     /**
@@ -88,19 +116,40 @@ EOD;
      * @return void
      * @throws \Box\Spout\Common\Exception\IOException If the sheet data file cannot be opened for writing
      */
-    protected function startSheet($freezeFirstRow = false)
+    protected function startSheet()
     {
         $this->sheetFilePointer = fopen($this->worksheetFilePath, 'w');
         $this->throwIfSheetFilePointerIsNotAvailable();
 
         fwrite($this->sheetFilePointer, self::SHEET_XML_FILE_HEADER);
 
-        if($freezeFirstRow) {
+        if($this->freezeXPos && $this->freezeYPos) {
+
             fwrite($this->sheetFilePointer,
                 '<sheetViews>
                     <sheetView tabSelected="1" workbookViewId="0">
-                        <pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>
-                        <selection pane="bottomLeft" sqref="A1:XFD1"/>
+                        <pane xSplit="' . $this->freezeXPos . '" ySplit="' . $this->freezeYPos . '" topLeftCell="' . $this->alphabeticColumnIndex($this->freezeXPos + 1) . ($this->freezeYPos + 1) . '" activePane="bottomRight" state="frozenSplit"/>
+                        <selection pane="topRight"/><selection pane="bottomLeft"/><selection pane="bottomRight"/>
+                    </sheetView>
+                </sheetViews>');
+
+        } else if($this->freezeXPos) {
+
+            fwrite($this->sheetFilePointer,
+                '<sheetViews>
+                    <sheetView tabSelected="1" workbookViewId="0">
+                        <pane xSplit="' . $this->freezeXPos . '" topLeftCell="' . $this->alphabeticColumnIndex($this->freezeXPos + 1) . '1" activePane="topRight" state="frozen"/>
+                        <selection pane="topRight"/>
+                    </sheetView>
+                </sheetViews>');
+
+        } else if($this->freezeYPos) {
+
+            fwrite($this->sheetFilePointer,
+                '<sheetViews>
+                    <sheetView tabSelected="1" workbookViewId="0">
+                        <pane ySplit="' . $this->freezeYPos . '" topLeftCell="A' . ($this->freezeYPos + 1) . '" activePane="bottomLeft" state="frozen"/>
+                        <selection pane="bottomLeft"/>
                     </sheetView>
                 </sheetViews>');
         }

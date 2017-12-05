@@ -35,6 +35,10 @@ class Workbook extends AbstractWorkbook
     /** @var \Box\Spout\Writer\XLSX\Helper\StyleHelper Helper to apply styles */
     protected $styleHelper;
 
+    protected $freezeXPos;
+    protected $freezeYPos;
+
+
     /**
      * @param string $tempFolder
      * @param bool $shouldUseInlineStrings
@@ -42,11 +46,14 @@ class Workbook extends AbstractWorkbook
      * @param \Box\Spout\Writer\Style\Style $defaultRowStyle
      * @throws \Box\Spout\Common\Exception\IOException If unable to create at least one of the base folders
      */
-    public function __construct($tempFolder, $shouldUseInlineStrings, $shouldCreateNewSheetsAutomatically, $defaultRowStyle)
+    public function __construct($tempFolder, $shouldUseInlineStrings, $shouldCreateNewSheetsAutomatically, $defaultRowStyle, $freezeXPos, $freezeYPos)
     {
         parent::__construct($shouldCreateNewSheetsAutomatically, $defaultRowStyle);
 
         $this->shouldUseInlineStrings = $shouldUseInlineStrings;
+
+        $this->freezeXPos = $freezeXPos;
+        $this->freezeYPos = $freezeYPos;
 
         $this->fileSystemHelper = new FileSystemHelper($tempFolder);
         $this->fileSystemHelper->createBaseFilesAndFolders();
@@ -84,13 +91,13 @@ class Workbook extends AbstractWorkbook
      * @return Worksheet The created sheet
      * @throws \Box\Spout\Common\Exception\IOException If unable to open the sheet for writing
      */
-    public function addNewSheet($freezeFirstRow = false)
+    public function addNewSheet()
     {
         $newSheetIndex = count($this->worksheets);
         $sheet = new Sheet($newSheetIndex, $this->internalId);
 
         $worksheetFilesFolder = $this->fileSystemHelper->getXlWorksheetsFolder();
-        $worksheet = new Worksheet($sheet, $worksheetFilesFolder, $this->sharedStringsHelper, $this->styleHelper, $this->shouldUseInlineStrings, $freezeFirstRow);
+        $worksheet = new Worksheet($sheet, $worksheetFilesFolder, $this->sharedStringsHelper, $this->styleHelper, $this->shouldUseInlineStrings, $this->freezeXPos, $this->freezeYPos);
         $this->worksheets[] = $worksheet;
 
         return $worksheet;

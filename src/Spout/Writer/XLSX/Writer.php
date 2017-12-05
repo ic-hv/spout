@@ -30,6 +30,11 @@ class Writer extends AbstractMultiSheetsWriter
     /** @var Internal\Workbook The workbook for the XLSX file */
     protected $book;
 
+
+    protected $freezeXPos;
+    protected $freezeYPos;
+
+
     /**
      * Sets a custom temporary folder for creating intermediate files/folders.
      * This must be set before opening the writer.
@@ -64,6 +69,12 @@ class Writer extends AbstractMultiSheetsWriter
         return $this;
     }
 
+    public function setFreezePos($x, $y) {
+
+        $this->freezeXPos = $x;
+        $this->freezeYPos = $y;
+    }
+
     public function registerStyle($style) {
         $this->book->registerStyle($style);
     }
@@ -78,7 +89,7 @@ class Writer extends AbstractMultiSheetsWriter
     {
         if (!$this->book) {
             $tempFolder = ($this->tempFolder) ? : sys_get_temp_dir();
-            $this->book = new Workbook($tempFolder, $this->shouldUseInlineStrings, $this->shouldCreateNewSheetsAutomatically, $this->defaultRowStyle);
+            $this->book = new Workbook($tempFolder, $this->shouldUseInlineStrings, $this->shouldCreateNewSheetsAutomatically, $this->defaultRowStyle, $this->freezeXPos, $this->freezeYPos);
             $this->book->addNewSheetAndMakeItCurrent();
         }
     }
