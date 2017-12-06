@@ -211,6 +211,9 @@ EOD;
             $this->addNonEmptyRow($dataRow, $style);
         }
 
+        // TODO: Remember the first FreezeYPos- Rows which are inserted on the first sheet and re-insert them on
+        // subsequent sheets which are created (automatically)
+
         $this->lastWrittenRowIndex++;
     }
 

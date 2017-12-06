@@ -10,8 +10,6 @@ namespace Box\Spout\Writer\Style;
  */
 class StyleBuilder
 {
-    private static $buildId = 1;
-
     /** @var Style Style to be created */
     protected $style;
 
@@ -176,9 +174,6 @@ class StyleBuilder
      */
     public function build()
     {
-        $buildedStyle = clone $this->style;
-        $buildedStyle->setId(StyleBuilder::$buildId++);
-
-        return $buildedStyle;
+        return $this->style;
     }
 }
