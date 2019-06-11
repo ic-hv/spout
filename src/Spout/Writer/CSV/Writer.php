@@ -98,7 +98,12 @@ class Writer extends AbstractWriter
      */
     protected function addRowToWriter(array $dataRow, $style)
     {
-        $wasWriteSuccessful = $this->globalFunctionsHelper->fputcsv($this->filePointer, $dataRow, $this->fieldDelimiter, $this->fieldEnclosure);
+        if($this->fieldEnclosure === null) {
+            $wasWriteSuccessful = fputs($this->filePointer, implode($dataRow, $this->fieldDelimiter) . "\n");
+        } else {
+            $wasWriteSuccessful = $this->globalFunctionsHelper->fputcsv($this->filePointer, $dataRow, $this->fieldDelimiter, $this->fieldEnclosure);
+        }
+
         if ($wasWriteSuccessful === false) {
             throw new IOException('Unable to write data');
         }
