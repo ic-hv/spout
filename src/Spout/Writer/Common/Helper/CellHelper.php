@@ -72,7 +72,7 @@ class CellHelper
      */
     public static function isFormulaString($value)
     {
-        return (strpos($value,'=') === 0);
+        return (strpos($value  ?? '','=') === 0);
     }
 
     /**
